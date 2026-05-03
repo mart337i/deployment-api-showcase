@@ -1,6 +1,6 @@
 # Operational Features
 
-`odoo_deployment_api` is more than create/redeploy. The later history shows work around real operator needs.
+The Deployment API is more than create/redeploy. The later history shows work around real operator needs.
 
 ## Task System
 

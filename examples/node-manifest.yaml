@@ -37,11 +37,11 @@ wireguard:
   listen_port: 51820
   private_key: example-private-key
   peers:
-    - name: deploy-it
+    - name: monitoring-hub
       public_key: example-public-key
       allowed_ips:
         - 10.77.0.1/32
-      endpoint: deploy-it.example.com:51820
+      endpoint: monitoring.example.com:51820
       persistent_keepalive: 25
 observability_agent:
   enabled: true

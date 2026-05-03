@@ -1,8 +1,8 @@
 flowchart LR
     Operator[Operator]
-    Odoo[Odoo: me_odoo_deployment]
-    RepoRegistry[Odoo: me_repo_registry]
-    API[FastAPI: odoo_deployment_api]
+    Odoo[Odoo control plane]
+    RepoRegistry[Odoo repository registry]
+    API[FastAPI Deployment API]
     ApiDb[(API PostgreSQL)]
     Node[Deployment Host]
     Doodba[/srv/doodba workspaces]

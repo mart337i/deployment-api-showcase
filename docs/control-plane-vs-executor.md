@@ -1,6 +1,6 @@
 # Control Plane Vs Executor
 
-The split between `egeskov-group/me_odoo_deployment` and `odoo_deployment_api` is deliberate.
+The split between the Odoo control-plane module and the Deployment API is deliberate.
 
 ## Why Not Put Everything In Odoo?
 
@@ -27,7 +27,7 @@ Odoo already knows:
 - responsible users
 - languages and locales
 - Odoo versions from `ir.odoo.release`
-- repository records from `me_repo_registry`
+- repository records from an Odoo repository registry
 - deployment purpose such as production, staging, upgrade, and demo
 - operator groups and permissions
 - UI actions and wizards

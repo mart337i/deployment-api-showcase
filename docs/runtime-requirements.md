@@ -98,8 +98,8 @@ deploy ALL=(root) NOPASSWD: /usr/sbin/nginx -t, /usr/bin/systemctl reload nginx,
 Required Odoo-side pieces:
 
 - Odoo 19
-- `me_odoo_deployment`
-- `me_repo_registry`
+- Odoo control-plane module
+- Odoo repository registry module
 - Python dependencies declared by the module: `requests`, `PyYAML`
 - Deployment API URL configured in Odoo settings
 - Deployment API token configured in Odoo settings

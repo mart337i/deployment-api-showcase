@@ -1,8 +1,8 @@
 # Odoo Deployment API Showcase
 
-This repository explains why `odoo_deployment_api` exists, what it does, how it works, and why the Odoo control plane is split from the deployment executor.
+This repository explains why the Odoo Deployment API exists, what it does, how it works, and why the Odoo control plane is split from the deployment executor.
 
-The system is a manifest-oriented deployment platform for Odoo instances. The Odoo module in `egeskov-group/me_odoo_deployment` gives operators a business-friendly UI for customers, instances, nodes, repositories, backups, and jobs. The external `odoo_deployment_api` service receives complete YAML manifests, validates them, renders Docker Compose workspaces, runs `git-aggregator`, updates nginx, and executes long-running tasks over SSH on deployment hosts.
+The system is a manifest-oriented deployment platform for Odoo instances. An Odoo control-plane module gives operators a business-friendly UI for customers, instances, nodes, repositories, backups, and jobs. The external Deployment API receives complete YAML manifests, validates them, renders Docker Compose workspaces, runs `git-aggregator`, updates nginx, and executes long-running tasks over SSH on deployment hosts.
 
 The Deployment API is open for demos and conversations with upcoming Odoo partners who want a practical way to provision, copy, back up, restore, and redeploy Odoo environments without giving the Odoo application direct infrastructure permissions.
 
@@ -42,14 +42,14 @@ For Odoo partners, I can help with customer onboarding, staging and production e
 
 For software teams, I can help with backend systems, API development, infrastructure automation, internal platforms, CI/CD-adjacent tooling, and refactoring manual processes into maintainable software.
 
-## Repositories Involved
+## Components Involved
 
-| Repository | Role |
+| Component | Role |
 | --- | --- |
-| `egeskov-group/me_odoo_deployment` | Odoo 19 module. Owns UX, forms, wizards, job mirrors, customer/node/repo records, and manifest generation. |
-| `odoo_deployment_api` | FastAPI execution service. Owns manifest validation, task leases, SSH execution, Docker Compose, nginx, backups, import/copy, command execution, and logs. |
-| `deployment_api` | Older imperative API. Useful historical reference for why the manifest rewrite happened. |
-| `egeskov-group/me_repo_registry` | Odoo-side repository registry. Tracks GitHub organizations, repositories, deploy branches, tokens, and snapshots used by deployment manifests. |
+| Odoo control-plane module | Odoo 19 module. Owns UX, forms, wizards, job mirrors, customer/node/repo records, and manifest generation. |
+| Deployment API | FastAPI execution service. Owns manifest validation, task leases, SSH execution, Docker Compose, nginx, backups, import/copy, command execution, and logs. |
+| Earlier imperative prototype | Historical implementation that directly managed tenants, proxies, backups, Linux users, and virtualenvs. It explains why the manifest rewrite happened. |
+| Odoo repository registry | Odoo-side repository registry. Tracks GitHub organizations, repositories, deploy branches, tokens, and snapshots used by deployment manifests. |
 
 ## Why The Split Matters
 
@@ -127,9 +127,9 @@ Benefits:
 ```mermaid
 flowchart LR
     Operator[Operator in Odoo]
-    Odoo[me_odoo_deployment]
-    Registry[me_repo_registry]
-    API[odoo_deployment_api]
+    Odoo[Odoo control plane]
+    Registry[Odoo repo registry]
+    API[Deployment API]
     DB[(API PostgreSQL)]
     Host[Deployment Host]
     Docker[Docker Compose Stacks]
@@ -150,7 +150,7 @@ flowchart LR
 
 1. Operator creates or updates an instance in Odoo.
 2. Odoo generates a YAML manifest from instance fields, node inventory, proxy domains, and repo registry records.
-3. Odoo submits the manifest to `odoo_deployment_api` with an idempotency key and optional `If-Match` SHA.
+3. Odoo submits the manifest to the Deployment API with an idempotency key and optional `If-Match` SHA.
 4. API validates the manifest and stores the manifest revision.
 5. API queues a durable task and returns `202 Accepted` with `task_id`.
 6. Worker connects to the target `docker_host` over SSH.
@@ -176,7 +176,7 @@ For production, expect:
 - writable deployment workspace, usually `/srv/doodba`
 - protected secret directory, usually `/srv/secrets`
 - API token or scoped DB-backed tokens
-- Odoo 19 with `me_odoo_deployment` and `me_repo_registry` for the Odoo UX
+- Odoo 19 with a control-plane module and repository registry module for the Odoo UX
 
 See [Runtime Requirements](docs/runtime-requirements.md) for the detailed checklist.
 
@@ -188,7 +188,7 @@ See [Runtime Requirements](docs/runtime-requirements.md) for the detailed checkl
 - [Manifest Contract](docs/manifest-contract.md)
 - [Runtime Requirements](docs/runtime-requirements.md)
 - [Deployment Flow](docs/deployment-flow.md)
-- [Git History Lessons](docs/git-history-lessons.md)
+- [Development Lessons](docs/development-lessons.md)
 - [Operational Features](docs/operational-features.md)
 
 ## Examples

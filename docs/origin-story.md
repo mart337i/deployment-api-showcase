@@ -1,10 +1,12 @@
 # Origin Story
 
-The current `odoo_deployment_api` is the result of moving from an imperative tenant provisioner to a manifest-oriented deployment engine.
+The current Deployment API is the result of moving from an imperative tenant provisioner to a manifest-oriented deployment engine.
 
-## Phase 1: Imperative Deployment API
+This page is written as a public summary. It does not require access to the private source history.
 
-The older `deployment_api` repository started as a FastAPI service that directly performed tenant operations on Ubuntu servers.
+## Phase 1: Imperative Deployment
+
+The first version directly performed tenant operations on Ubuntu servers.
 
 Early responsibilities included:
 
@@ -15,85 +17,79 @@ Early responsibilities included:
 - cloning Odoo source and addons
 - creating nginx proxies
 - creating backups
-- changing versions
-- copying tenants
+- changing Odoo versions
+- copying tenant data
 
-Important commits from `deployment_api`:
+This approach worked for early automation, but it made every new feature another imperative path. Each endpoint had to know about Odoo, source code, databases, nginx, filesystems, permissions, task state, and recovery behavior.
 
-| Commit | Lesson |
-| --- | --- |
-| `4364927 Initial implementation of deployment API` | The first design exposed direct tenant/proxy/backup endpoints and remote host operations. |
-| `880c7b5 feat: add idempotency, resource locking, and resumable tenant creation` | Long-running infrastructure operations need locks, idempotency, and resumability. |
-| `60ba645 feat: add tenant copy flow and CI deploy` | Tenant lifecycle expanded beyond create/delete into copy and automation. |
-| `ff8f24f feat: install addon python deps during tenant create/copy` | Custom addons pulled deployment logic deeper into source/runtime management. |
-| `311c798 add: ability to deploy repos with custom modules` | Repository composition became a first-class problem. |
+Lessons from this phase:
 
-The imperative approach worked, but it pushed too much behavior into many separate API calls. Each new feature added another path that had to understand Odoo, source code, databases, nginx, filesystems, and task state.
+- long-running infrastructure operations need idempotency
+- tenant operations need locks and resumability
+- backups are not complete without restore paths
+- custom repositories and addons must be first-class deployment inputs
+- direct host mutation becomes difficult to audit over time
 
 ## Phase 2: Manifest Rewrite
 
-The newer `odoo_deployment_api` started with `cdcdbf2 Bootstrap Odoo deployment API for production use`. That first commit already included the core shape of the rewrite:
+The next version changed the core model: Odoo sends a complete desired-state manifest, and the API applies it.
 
-- manifest schema
-- manifest validation
+The rewrite introduced:
+
+- manifest schema and validation
 - manifest history
-- task executor
-- token auth
-- remote SSH execution
+- canonical manifest SHA calculation
+- task executor with durable database state
+- token authentication and scopes
+- SSH execution on remote deployment hosts
 - Docker Compose workspace rendering
-- proxy rendering
+- nginx proxy rendering
 - command execution
-- tests and setup docs
+- tests and setup documentation
 
 The key idea was simple: Odoo should send complete desired state, not ask the API to perform many unrelated mutations.
 
-## Phase 3: Odoo Module Rewritten Around Manifests
+## Phase 3: Odoo Control Plane
 
-The Odoo module followed the same architectural shift.
+The Odoo module was rewritten around the same idea.
 
-Important commit:
+Instead of directly managing deployment internals, the Odoo side became the control plane:
 
-| Commit | Lesson |
-| --- | --- |
-| `fa4d609 Rewrite deployment module for manifest-based deployment API` | The module became the Odoo-side manifest builder and job UI. |
+- operators create and manage instances in Odoo
+- repository choices are selected from an Odoo repository registry
+- node inventory decides where instances run
+- proxy domains and SSL defaults are modeled in Odoo
+- jobs mirror remote API tasks
+- manifests can be previewed, submitted, and tracked
 
-That rewrite added models for:
+The module became the Odoo-side manifest builder and job UI.
 
-- `odoo.instance`
-- `odoo.paas.deployment`
-- `odoo.paas.node`
-- `odoo.paas.proxy`
-- `odoo.paas.job`
-- `odoo.instance.repo`
+## Phase 4: Production Simplification
 
-The module now prepares the manifest in `_prepare_manifest_dict()` and submits it from `odoo.paas.job` to `PUT /api/instances/{name}/manifest`.
+Several parts became simpler after the production environment became clearer.
 
-## Phase 4: Simplification Around Production Reality
+Examples:
 
-The history shows several cases where complexity was removed after production constraints became clearer.
-
-| Commit | Meaning |
-| --- | --- |
-| `3003eaf Align deployment API with nginx-based production hosts` | Production hosts already used nginx, so proxy behavior moved toward that reality. |
-| `b7f2f8c Standardize proxy rendering on nginx` | Traefik/custom proxy paths were removed; nginx became the standard. |
-| `4559968 Align deployment UI with nginx proxy mode` | Odoo UI was simplified to match the nginx-only API contract. |
-| `a4c0309 Remove API observability runtime` | The API stopped owning a local observability stack. |
-| `65613e8 Add WireGuard observability node automation` | Observability moved closer to deployment nodes and external monitoring. |
+- host nginx became the standard proxy mode
+- unsupported proxy branches were removed
+- Odoo UI fields were simplified to match real API behavior
+- the API stopped owning a local observability runtime
+- observability moved toward node agents, dashboards, labels, and external monitoring
 
 This is an important product lesson: the right deployment platform is not the most general one. It is the one that reflects the actual operating environment.
 
 ## Phase 5: Operational Hardening
 
-Later commits are mostly hardening and operational workflows.
+Later work focused on operator needs:
 
-Examples:
+- manual backups
+- backup import and restore
+- code-only redeploy
+- node verification
+- captured stdout/stderr on remote failures
+- node manifest automation
+- stale Docker Compose cleanup
+- safer nginx writes
+- better dashboard panels and labels
 
-- `572ba18 Add manual instance backup API flow`
-- `10cbce2 Add backup import restore flow`
-- `008ea3e Add code-only redeploy task`
-- `7dd89d9 Add node verification endpoint`
-- `6359ede Capture remote output on task failures`
-- `162dce8 Add node manifest CLI and current manifest export`
-- `6d19855 Fix redeploy cleanup for stale compose projects`
-
-These commits show the system becoming less of a prototype and more of an operator tool: recoverable tasks, readable failures, backfill, verification, backups, imports, and safe cleanup.
+These changes made the system less of a prototype and more of an operator tool: recoverable tasks, readable failures, backfill, verification, backups, imports, and safe cleanup.

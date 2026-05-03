@@ -8,7 +8,7 @@ The deployment system has three major layers:
 
 ## Odoo Control Plane
 
-The Odoo module `me_odoo_deployment` is where operators work.
+The Odoo control-plane module is where operators work.
 
 It owns:
 
@@ -17,7 +17,7 @@ It owns:
 - Odoo version and edition choices
 - deployment node inventory
 - domain/proxy records
-- repository selections from `me_repo_registry`
+- repository selections from an Odoo repository registry
 - backup and import wizards
 - job records that mirror remote API tasks
 - manifest preview and manifest history views
@@ -26,7 +26,7 @@ The module does not run Docker commands. It does not write nginx files. It does 
 
 ## Deployment API Executor
 
-`odoo_deployment_api` is a FastAPI service with a durable task executor.
+The Deployment API is a FastAPI service with a durable task executor.
 
 It owns:
 

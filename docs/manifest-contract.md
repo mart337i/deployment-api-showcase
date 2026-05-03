@@ -1,6 +1,6 @@
 # Manifest Contract
 
-The manifest is the most important design choice in `odoo_deployment_api`.
+The manifest is the most important design choice in the Deployment API.
 
 Instead of calling separate endpoints for every small mutation, Odoo sends a complete desired-state document. The API validates it, stores it, computes a canonical SHA, and applies it through a durable task.
 
