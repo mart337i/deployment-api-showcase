@@ -1,3 +1,5 @@
+<img width="1870" height="948" alt="billede" src="https://github.com/user-attachments/assets/62dd7e45-04fa-438a-9358-cd2c11c4b11c" />
+
 # Odoo Deployment API Showcase
 
 This repository explains why the Odoo Deployment API exists, what it does, how it works, and why the Odoo control plane is split from the deployment executor.
