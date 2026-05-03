@@ -1,0 +1,67 @@
+manifest_version: 1.0.0
+min_api_version: 0.1.0
+instance:
+  name: acme-production
+  version: "19.0"
+  edition: community
+  http_port: 18079
+  gevent_port: 18080
+  workers: 2
+  cron_threads: 1
+  demo_data: false
+  environment: production
+  locale: en_US
+  admin_passwd: example-admin-password
+  db_password: example-db-password
+runtime:
+  compose_project: acme-production
+  docker_host: odoo-node-01
+  doodba_image: odoo:19.0
+  env:
+    LOG_LEVEL: info
+  limits:
+    cpu: 1.0
+    memory: 2Gi
+git:
+  /opt/odoo/custom/addons/queue:
+    remotes:
+      origin: https://github.com/OCA/queue.git
+    target: origin 19.0
+    depth: 20
+  /opt/odoo/custom/addons/customer:
+    remotes:
+      origin: git@github.com:example/acme-odoo-addons.git
+    target: origin 19.0
+    depth: 20
+    credential:
+      type: ssh
+      uri: secret://instances/acme/git_deploy_key#v1
+addons:
+  queue:
+    - name: queue_job
+  customer:
+    - glob: acme_*
+services:
+  database:
+    version: "18"
+    storage: local
+    backup:
+      retention_days: 14
+      schedule: cron:0 2 * * *
+    replication:
+      enabled: false
+      max_replication_lag_seconds: 300
+  redis_enabled: false
+  mailhog_enabled: false
+proxy:
+  mode: nginx
+  allow_custom_upstream: false
+  letsencrypt_email: ops@example.com
+  redirect_http_to_https: true
+  basic_auth:
+    username: staging
+    password: example-basic-auth-password
+  domains:
+    - host: acme.example.com
+      ssl: letsencrypt
+      upstream_port: 18079

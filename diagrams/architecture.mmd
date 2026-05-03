@@ -1,0 +1,26 @@
+flowchart LR
+    Operator[Operator]
+    Odoo[Odoo: me_odoo_deployment]
+    RepoRegistry[Odoo: me_repo_registry]
+    API[FastAPI: odoo_deployment_api]
+    ApiDb[(API PostgreSQL)]
+    Node[Deployment Host]
+    Doodba[/srv/doodba workspaces]
+    Secrets[/srv/secrets]
+    GitAgg[gitaggregate]
+    Compose[Docker Compose]
+    Nginx[nginx + Certbot]
+    OdooInstance[Running Odoo Instance]
+
+    Operator --> Odoo
+    Odoo --> RepoRegistry
+    Odoo -- manifest YAML --> API
+    API --> ApiDb
+    API -- SSH/Fabric --> Node
+    Node --> Doodba
+    Node --> Secrets
+    Node --> GitAgg
+    Node --> Compose
+    Node --> Nginx
+    Compose --> OdooInstance
+    Nginx --> OdooInstance

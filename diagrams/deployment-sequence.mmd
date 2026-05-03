@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Operator
+    participant Odoo as me_odoo_deployment
+    participant API as odoo_deployment_api
+    participant DB as API PostgreSQL
+    participant Host as Deployment Host
+    participant Docker as Docker Compose
+    participant Nginx as nginx
+
+    Operator->>Odoo: Click Create/Redeploy
+    Odoo->>Odoo: Build YAML manifest
+    Odoo->>API: PUT /api/instances/{name}/manifest
+    API->>API: Validate manifest and compute SHA
+    API->>DB: Store instance, history, task
+    API-->>Odoo: 202 Accepted task_id
+    API->>Host: SSH connect
+    Host->>Host: Create /srv/doodba/{instance}/{sha}
+    API->>Host: Upload rendered workspace
+    Host->>Host: Run gitaggregate
+    Host->>Docker: docker compose up -d --wait
+    Host->>Docker: bootstrap or upgrade Odoo
+    Host->>Nginx: Write vhost, nginx -t, reload
+    API->>DB: Mark task success/failure and logs
+    Odoo->>API: Poll /api/tasks/bulk
+    Odoo->>API: Fetch logs/status
+    Odoo->>Odoo: Mirror remote state

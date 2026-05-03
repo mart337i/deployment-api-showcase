@@ -1,0 +1,53 @@
+node_manifest_version: 1.0.0
+min_api_version: 0.1.0
+name: odoo-node-01
+host: 10.77.0.11
+roles:
+  - application
+  - proxy
+ssh:
+  bootstrap_user: root
+  bootstrap_port: 22
+  operational_user: deploy
+  operational_port: 22
+  authorized_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIexample deployment-api
+packages:
+  docker: true
+  nginx: true
+  certbot: true
+  git_aggregator: true
+  wireguard: true
+paths:
+  workspace_root: /srv/doodba
+  secret_base_dir: /srv/secrets
+  git_cache_dir: /srv/doodba/git-cache
+proxy:
+  ssl_mode: letsencrypt
+  letsencrypt_email: ops@example.com
+sudo:
+  passwordless: true
+  docker_access: group
+  nginx_management: true
+  certbot_management: true
+  shell_management: true
+wireguard:
+  enabled: true
+  interface: wg0
+  address: 10.77.0.11/24
+  listen_port: 51820
+  private_key: example-private-key
+  peers:
+    - name: deploy-it
+      public_key: example-public-key
+      allowed_ips:
+        - 10.77.0.1/32
+      endpoint: deploy-it.example.com:51820
+      persistent_keepalive: 25
+observability_agent:
+  enabled: true
+  install_dir: /opt/odoo_observability_agent
+  node_name: odoo-node-01
+  environment: production
+  alloy_image: grafana/alloy:v1.16.0
+  loki_push_url: http://10.77.0.1:3100/loki/api/v1/push
+  victoria_remote_write_url: http://10.77.0.1:8428/api/v1/write
